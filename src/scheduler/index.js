@@ -2,6 +2,7 @@ const { validateTaskParams } = require('./validator');
 const { createRepeatingTimer, cancelTimer } = require('./timer-manager');
 const { TaskRegistry } = require('./task-registry');
 const log = require('../logger');
+const TaskNotFoundError = require('../errors/TaskNotFoundError');
 
 const registry = new TaskRegistry();
 
@@ -25,7 +26,7 @@ const scheduleTask = (name, interval, task) => {
 
 const cancelTask = (name) => {
     if (!registry.has(name)) {
-        return false;
+        throw new TaskNotFoundError(name);
     }
 
     const timerId = registry.unregister(name);
