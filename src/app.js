@@ -1,15 +1,16 @@
 const config = require('./config');
-const log = require('./logger');
+const logger = require('./logger');
 const { scheduleTask } = require('./scheduler');
 
 const bootstrap = () => {
-    log(`Starting: ${config.appName}`);
+    logger.info(`Starting: ${config.appName}`);
     
-    log(`Server initialized, wait for connections on port ${config.settings.port}`);
+    logger.info(`Server initialized, wait for connections on port ${config.settings.port}`);
 
-    scheduleTask('mainTask', 10000, () => {
-        console.log('running')
+    scheduleTask('mainTask', 1000, () => {
+        logger.debug('Main task executed');
+        console.log('running');
     });
-}
+};
 
 module.exports = { bootstrap };
