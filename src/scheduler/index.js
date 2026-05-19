@@ -2,7 +2,7 @@ const { validateTaskParams } = require('./validator');
 const { createRepeatingTimer, cancelTimer } = require('./timer-manager');
 const { TaskRegistry } = require('./task-registry');
 const logger = require('../logger');
-const TaskNotFoundError = require('../errors/TaskNotFoundError').default;
+const TaskNotFoundError = require('../errors/TaskNotFoundError');
 
 const registry = new TaskRegistry();
 
