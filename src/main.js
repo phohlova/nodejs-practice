@@ -1,5 +1,6 @@
 const { app, initApp } = require('./app');
 const config = require('./config');
+const logger = require('./logger');
 
 initApp();
 
