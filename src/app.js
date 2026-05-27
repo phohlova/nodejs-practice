@@ -7,6 +7,7 @@ const swaggerSpec = require('./config/swagger');
 const swaggerUi = require('swagger-ui-express');
 
 const currenciesRouter = require('./routes/currencies');
+const pricesRouter = require('./routes/prices');
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.get('/secure/data', authenticateToken, (req, res) => {
 });
 
 app.use('/currencies', currenciesRouter);
+app.use('/', pricesRouter);
 
 const initApp = () => {
     logger.info(`Starting: ${config.appName}`);

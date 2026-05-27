@@ -31,7 +31,7 @@ describe('Currencies API', () => {
       expect(res.body.error).toContain('required');
     });
   });
-
+  
   describe('GET /currencies', () => {
     test('must return empty array, if no currencies', async () => {
       const res = await request(app).get('/currencies');
