@@ -10,7 +10,7 @@ const binanceClient = axios.create({
 
 const getAllTickers = async () => {
     try {
-        comst response = await binanceClient.get('/api/v3/ticker/price');
+        const response = await binanceClient.get('/api/v3/ticker/price');
         return response.data;
     } catch (error) {
         logger.error('Binance API error: ', {
