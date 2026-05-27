@@ -10,6 +10,10 @@ const currenciesRouter = require('./routes/currencies');
 
 const app = express();
 
+app.use(express.json());
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.get('/status', (req, res) => {
     res.status(200).send('ok');
 });

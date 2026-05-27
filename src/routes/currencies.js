@@ -20,9 +20,15 @@ const router = express.Router();
  *               items:
  *                 type: object
  *                 properties:
- *                   id: { type: integer, example: 1 }
- *                   name: { type: string, example: "US Dollar" }
- *                   ticker: { type: string, example: "USD" }
+ *                   id:
+ *                     type: integer
+ *                     example: 1
+ *                   name:
+ *                     type: string
+ *                     example: US Dollar
+ *                   ticker:
+ *                     type: string
+ *                     example: USD
  */
 router.get('/', (req, res) => {
   const list = currencyRepo.findAll();
@@ -41,10 +47,16 @@ router.get('/', (req, res) => {
  *         application/json:
  *           schema:
  *             type: object
- *             required: [name, ticker]
+ *             required:
+ *               - name
+ *               - ticker
  *             properties:
- *               name: { type: string, example: "Euro" }
- *               ticker: { type: string, example: "EUR" }
+ *               name:
+ *                 type: string
+ *                 example: Euro
+ *               ticker:
+ *                 type: string
+ *                 example: EUR
  *     responses:
  *       201:
  *         description: Валюта создана
@@ -53,16 +65,20 @@ router.get('/', (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 id: { type: integer, example: 2 }
- *                 name: { type: string }
- *                 ticker: { type: string }
+ *                 id:
+ *                   type: integer
+ *                   example: 2
+ *                 name:
+ *                   type: string
+ *                 ticker:
+ *                   type: string
  *       400:
  *         description: Ошибка валидации
  */
 router.post('/', (req, res) => {
-    const { name, ticker } = req.body;
+  const { name, ticker } = req.body;
 
-    if (!name || !ticker) {
+  if (!name || !ticker) {
     return res.status(400).json({ error: 'name and ticker are required' });
   }
   
@@ -78,10 +94,11 @@ router.post('/', (req, res) => {
  *     summary: Получить валюту по ID
  *     tags: [Currencies]
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
- *         schema: { type: integer }
+ *         schema:
+ *           type: integer
  *     responses:
  *       200:
  *         description: Найденная валюта
@@ -90,9 +107,12 @@ router.post('/', (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 id: { type: integer }
- *                 name: { type: string }
- *                 ticker: { type: string }
+ *                 id:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 ticker:
+ *                   type: string
  *       404:
  *         description: Валюта не найдена
  */
@@ -114,18 +134,21 @@ router.get('/:id', (req, res) => {
  *     summary: Обновить валюту
  *     tags: [Currencies]
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
- *         schema: { type: integer }
+ *         schema:
+ *           type: integer
  *     requestBody:
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               name: { type: string }
- *               ticker: { type: string }
+ *               name:
+ *                 type: string
+ *               ticker:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Валюта обновлена
@@ -134,9 +157,12 @@ router.get('/:id', (req, res) => {
  *             schema:
  *               type: object
  *               properties:
- *                 id: { type: integer }
- *                 name: { type: string }
- *                 ticker: { type: string }
+ *                 id:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 ticker:
+ *                   type: string
  *       404:
  *         description: Валюта не найдена
  */
@@ -160,10 +186,11 @@ router.put('/:id', (req, res) => {
  *     summary: Удалить валюту
  *     tags: [Currencies]
  *     parameters:
- *       - name: id
- *         in: path
+ *       - in: path
+ *         name: id
  *         required: true
- *         schema: { type: integer }
+ *         schema:
+ *           type: integer
  *     responses:
  *       204:
  *         description: Валюта удалена
