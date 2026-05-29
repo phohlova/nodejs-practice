@@ -3,105 +3,105 @@ const { app } = require('../../src/app');
 const currencyRepo = require('../../src/repositories/currencyRepository');
 
 describe('Currencies API', () => {
-  beforeEach(() => {
-    currencyRepo.clear();
-  });
+	beforeEach(() => {
+		currencyRepo.clear();
+	});
 
-  describe('POST /currencies', () => {
-    test('must create currence with valid data', async () => {
-      const res = await request(app)
-        .post('/currencies')
-        .send({ name: 'Euro', ticker: 'EUR' })
-        .set('Content-Type', 'application/json');
+	describe('POST /currencies', () => {
+		test('must create currence with valid data', async () => {
+			const res = await request(app)
+				.post('/currencies')
+				.send({ name: 'Euro', ticker: 'EUR' })
+				.set('Content-Type', 'application/json');
 
-      expect(res.status).toBe(201);
-      expect(res.body).toMatchObject({
-        id: 1,
-        name: 'Euro',
-        ticker: 'EUR'
-      });
-    });
+			expect(res.status).toBe(201);
+			expect(res.body).toMatchObject({
+				id: 1,
+				name: 'Euro',
+				ticker: 'EUR'
+			});
+		});
 
-    test('must return 400, if no name or ticker', async () => {
-      const res = await request(app)
-        .post('/currencies')
-        .send({ name: 'Only Name' });
+		test('must return 400, if no name or ticker', async () => {
+			const res = await request(app)
+				.post('/currencies')
+				.send({ name: 'Only Name' });
 
-      expect(res.status).toBe(400);
-      expect(res.body.error).toContain('required');
-    });
-  });
-  
-  describe('GET /currencies', () => {
-    test('must return empty array, if no currencies', async () => {
-      const res = await request(app).get('/currencies');
-      expect(res.status).toBe(200);
-      expect(res.body).toEqual([]);
-    });
+			expect(res.status).toBe(400);
+			expect(res.body.error).toContain('required');
+		});
+	});
 
-    test('must return list of currencies', async () => {
-      currencyRepo.create({ name: 'US Dollar', ticker: 'USD' });
-      currencyRepo.create({ name: 'Euro', ticker: 'EUR' });
+	describe('GET /currencies', () => {
+		test('must return empty array, if no currencies', async () => {
+			const res = await request(app).get('/currencies');
+			expect(res.status).toBe(200);
+			expect(res.body).toEqual([]);
+		});
 
-      const res = await request(app).get('/currencies');
-      expect(res.status).toBe(200);
-      expect(res.body).toHaveLength(2);
-      expect(res.body[0].ticker).toBe('USD');
-    });
-  });
+		test('must return list of currencies', async () => {
+			currencyRepo.create({ name: 'US Dollar', ticker: 'USD' });
+			currencyRepo.create({ name: 'Euro', ticker: 'EUR' });
 
-  describe('GET /currencies/:id', () => {
-    test('must return currency with existing ID', async () => {
-      const created = currencyRepo.create({ name: 'Pound', ticker: 'GBP' });
+			const res = await request(app).get('/currencies');
+			expect(res.status).toBe(200);
+			expect(res.body).toHaveLength(2);
+			expect(res.body[0].ticker).toBe('USD');
+		});
+	});
 
-      const res = await request(app).get(`/currencies/${created.id}`);
-      expect(res.status).toBe(200);
-      expect(res.body.ticker).toBe('GBP');
-    });
+	describe('GET /currencies/:id', () => {
+		test('must return currency with existing ID', async () => {
+			const created = currencyRepo.create({ name: 'Pound', ticker: 'GBP' });
 
-    test('must return 404 for non-existent ID', async () => {
-      const res = await request(app).get('/currencies/999');
-      expect(res.status).toBe(404);
-      expect(res.body.error).toBe('Currency not found');
-    });
-  });
+			const res = await request(app).get(`/currencies/${created.id}`);
+			expect(res.status).toBe(200);
+			expect(res.body.ticker).toBe('GBP');
+		});
 
-  describe('PUT /currencies/:id', () => {
-    test('must update existing currency', async () => {
-      const created = currencyRepo.create({ name: 'Old', ticker: 'OLD' });
+		test('must return 404 for non-existent ID', async () => {
+			const res = await request(app).get('/currencies/999');
+			expect(res.status).toBe(404);
+			expect(res.body.error).toBe('Currency not found');
+		});
+	});
 
-      const res = await request(app)
-        .put(`/currencies/${created.id}`)
-        .send({ name: 'Updated', ticker: 'UPD' });
+	describe('PUT /currencies/:id', () => {
+		test('must update existing currency', async () => {
+			const created = currencyRepo.create({ name: 'Old', ticker: 'OLD' });
 
-      expect(res.status).toBe(200);
-      expect(res.body.name).toBe('Updated');
-      expect(res.body.ticker).toBe('UPD');
-    });
+			const res = await request(app)
+				.put(`/currencies/${created.id}`)
+				.send({ name: 'Updated', ticker: 'UPD' });
 
-    test('must return 404 for non-existing ID', async () => {
-      const res = await request(app)
-        .put('/currencies/999')
-        .send({ name: 'Test' });
+			expect(res.status).toBe(200);
+			expect(res.body.name).toBe('Updated');
+			expect(res.body.ticker).toBe('UPD');
+		});
 
-      expect(res.status).toBe(404);
-    });
-  });
+		test('must return 404 for non-existing ID', async () => {
+			const res = await request(app)
+				.put('/currencies/999')
+				.send({ name: 'Test' });
 
-  describe('DELETE /currencies/:id', () => {
-    test('must delete existing currency', async () => {
-      const created = currencyRepo.create({ name: 'ToDelete', ticker: 'DEL' });
+			expect(res.status).toBe(404);
+		});
+	});
 
-      const res = await request(app).delete(`/currencies/${created.id}`);
-      expect(res.status).toBe(204);
+	describe('DELETE /currencies/:id', () => {
+		test('must delete existing currency', async () => {
+			const created = currencyRepo.create({ name: 'ToDelete', ticker: 'DEL' });
 
-      const getRes = await request(app).get(`/currencies/${created.id}`);
-      expect(getRes.status).toBe(404);
-    });
+			const res = await request(app).delete(`/currencies/${created.id}`);
+			expect(res.status).toBe(204);
 
-    test('must return 404 for non-existing ID', async () => {
-      const res = await request(app).delete('/currencies/999');
-      expect(res.status).toBe(404);
-    });
-  });
+			const getRes = await request(app).get(`/currencies/${created.id}`);
+			expect(getRes.status).toBe(404);
+		});
+
+		test('must return 404 for non-existing ID', async () => {
+			const res = await request(app).delete('/currencies/999');
+			expect(res.status).toBe(404);
+		});
+	});
 });
