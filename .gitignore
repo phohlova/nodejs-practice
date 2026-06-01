@@ -1,2 +1,9 @@
 .env
 /node_modules
+
+*.sqlite
+*.db
+*.sqlite-journal
+*.sqlite-wal
+
+data/
