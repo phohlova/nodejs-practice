@@ -4,7 +4,10 @@
   "description": "testing",
   "main": "main.js",
   "scripts": {
-    "test": "jest"
+    "start": "node src/main.js",
+    "test": "jest",
+    "db:init": "node src/scripts/init-db.js",
+    "db:reset": "del /Q data/app.sqlite 2>nul & && npm run db:init"
   },
   "repository": {
     "type": "git",
