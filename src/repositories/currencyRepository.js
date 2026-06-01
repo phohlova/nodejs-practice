@@ -7,6 +7,14 @@ const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS currencies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    ticker TEXT NOT NULL UNIQUE
+  );
+`);
+
 const run = (sql, params = []) => db.prepare(sql).run(params);
 const get = (sql, params = []) => db.prepare(sql).get(params);
 const all = (sql, params = []) => db.prepare(sql).all(params);
@@ -22,23 +30,32 @@ const findAll = () => all('SELECT id, name, ticker FROM currencies');
 const findById = (id) => get('SELECT id, name, ticker FROM currencies WHERE id = ?', [id]);
 
 const update = (id, data) => {
-	const fields = [];
-	const values = [];
-
-	if (data.name !== undefined) {
-		fields.push('name = ?');
-		values.push(data.name);
+	const existing = findById(id);
+	if (!existing) {
+		return undefined;
 	}
 
-	if (data.ticker !== undefined) {
-		fileds.push('ticker = ?');
-		values.push(data.ticker);
+	const sets = [];
+	const params = [];
+
+	if (data.name !== undefined && data.name !== null) {
+		sets.push('name = ?');
+		params.push(String(data.name));
+	}
+	if (data.ticker !== undefined && data.ticker !== null) {
+		sets.push('ticker = ?');
+		params.push(String(data.ticker));
 	}
 
-	if (fileds.length === 0) return findById(id);
+	if (sets.length === 0) {
+		return existing;
+	}
 
-	values.push(id);
-	run(`UPDATE currencies SET ${fields.join(', ')} WHERE id = ?`, values);
+	params.push(Number(id));
+
+	const sql = `UPDATE currencies SET ${sets.join(', ')} WHERE id = ?`;
+	db.prepare(sql).run(params);
+
 	return findById(id);
 };
 
@@ -49,7 +66,7 @@ const remove = (id) => {
 
 const clear = () => {
 	run('DELETE FROM currencies');
-	run('DELETE FROM sqlite_sequence WHERE name = "currencies"');
+	run('DELETE FROM sqlite_sequence WHERE name = ?', ['currencies']);
 };
 
 module.exports = { create, findAll, findById, update, remove, clear };
