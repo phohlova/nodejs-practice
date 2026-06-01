@@ -1,33 +1,40 @@
 const express = require('express');
-const config = require('./config');
-const logger = require('./logger');
+const { initializeDatabase } = require('./database');
 const { scheduleTask } = require('./scheduler');
-const authenticateToken = require('./middleware/auth');
+const CurrencyRepository = require('./repositories/CurrencyRepository');
+const { createCurrencyRoutes } = require('./routes/currencies');
 const swaggerSpec = require('./config/swagger');
 const swaggerUi = require('swagger-ui-express');
+const authenticateToken = require('./middleware/auth');
+const logger = require('./logger');
+const config = require('./config');
 
-const currenciesRouter = require('./routes/currencies');
-const pricesRouter = require('./routes/prices');
+function createApp(testDb = null) {
+    const app = express();
+    app.use(express.json());
 
-const app = express();
+    const db = testDb || initializeDatabase(process.env.DB_PATH || './data/app.sqlite');
 
-app.use(express.json());
+    const currencyRepo = new CurrencyRepository(db);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    app.use('/currencies', createCurrencyRoutes(currencyRepo));
 
-app.get('/status', (req, res) => {
-    res.status(200).send('ok');
-});
+    app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+    app.get('/status', (req, res) => res.status(200).send('ok'));
 
-app.get('/secure/data', authenticateToken, (req, res) => {
-    res.json({
-        message: 'Secret data accessed',
-        userId: req.user.id || 'anonymous'
+    app.get('/secure/data', authenticateToken, (req, res) => {
+        res.json({ message: 'Secret data accessed', userId: req.user?.id || 'anonymous' });
     });
-});
 
-app.use('/currencies', currenciesRouter);
-app.use('/', pricesRouter);
+    app.use((err, req, res, next) => {
+        logger.error(`Unhandled error: ${err.message}`, { path: req.path, stack: err.stack });
+        const status = err.statusCode || 500;
+        const message = process.env.NODE_ENV === 'development' ? err.message : 'Internal server error';
+        res.status(status).json({ error: message });
+    });
+
+    return { app, db, currencyRepo };
+}
 
 const initApp = () => {
     logger.info(`Starting: ${config.appName}`);
@@ -38,4 +45,4 @@ const initApp = () => {
     });
 };
 
-module.exports = { app, initApp };
+module.exports = { createApp, initApp };

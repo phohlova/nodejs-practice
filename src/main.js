@@ -1,6 +1,9 @@
-const { app, initApp } = require('./app');
+const { createApp, initApp } = require('./app');
 const config = require('./config');
 const logger = require('./logger');
+const { scheduleTask } = require('./scheduler');
+
+const { app, db } = createApp();
 
 initApp();
 
@@ -15,3 +18,4 @@ process.on('SIGTERM', () => {
         process.exit(0);
     });
 });
+
