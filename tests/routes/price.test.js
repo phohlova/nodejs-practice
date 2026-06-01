@@ -8,7 +8,7 @@ jest.mock('../../src/services/binanceService', () => {
 
 const request = require('supertest');
 const { app } = require('../../src/app');
-const currencyRepo = require('../../src/repositories/currencyRepository');
+const currencyRepo = require('../../src/repositories/CurrencyRepository');
 const binanceService = require('../../src/services/binanceService');
 
 

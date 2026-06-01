@@ -1,5 +1,5 @@
 const express = require('express');
-const currencyRepo = require('../repositories/currencyRepository');
+const currencyRepo = require('../repositories/CurrencyRepository');
 const logger = require('../logger');
 const { getAllTickers, filterByCurrency } = require('../services/binanceService');
 
