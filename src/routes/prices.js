@@ -1,68 +1,73 @@
 const express = require('express');
-const currencyRepo = require('../repositories/CurrencyRepository');
 const { getAllTickers, filterByCurrency } = require('../services/binanceService');
 const logger = require('../logger');
 
-const router = express.Router();
+function createPriceRoutes(currencyRepo) {
+	const router = express.Router();
 
-/**
- * @openapi
- * /price:
- *   get:
- *     summary: Получить курсы валют с Binance
- *     tags: [Prices]
- *     parameters:
- *       - in: query
- *         name: currency
- *         required: true
- *         schema: { type: string }
- *         example: USD
- *     responses:
- *       200:
- *         description: Список курсов
- *       400:
- *         description: Параметр currency не передан
- *       404:
- *         description: Валюта не найдена в базе
- *       502:
- *         description: Ошибка Binance API
- */
-router.get('/price', async (req, res) => {
-	const { currency } = req.query;
+	/**
+	 * @openapi
+	 * /price:
+	 *   get:
+	 *     summary: Получить курсы валют с Binance
+	 *     tags: [Prices]
+	 *     parameters:
+	 *       - in: query
+	 *         name: currency
+	 *         required: true
+	 *         schema: { type: string }
+	 *         example: USD
+	 *     responses:
+	 *       200:
+	 *         description: Список курсов
+	 *       400:
+	 *         description: Параметр currency не передан
+	 *       404:
+	 *         description: Валюта не найдена в базе
+	 *       502:
+	 *         description: Ошибка Binance API
+	 */
+	router.get('/', async (req, res, next) => {
+		try {
+			const { currency } = req.query;
 
-	if (!currency) {
-		return res.status(400).json({ error: 'Query parameter "currency" is required' });
-	}
+			if (!currency) {
+				return res.status(400).json({ error: 'Query parameter "currency" is required' });
+			}
 
-	const localCurrencies = currencyRepo.findAll();
-	const exists = localCurrencies.some(c =>
-		c.ticker.toUpperCase() === currency.toUpperCase()
-	);
+			const localCurrencies = currencyRepo.findAll();
+			const exists = localCurrencies.some(c => 
+				c.ticker.toUpperCase() === currency.toUpperCase()
+			);
 
-	if (!exists) {
-		return res.status(404).json({
-			error: `Currency "${currency}" not found in database`,
-			available: localCurrencies.map(c => c.ticker)
-		});
-	}
+			if (!exists) {
+				logger.warn(`Currency "${currency}" not found in local database`);
+				return res.status(404).json({
+					error: `Currency "${currency}" not found in database`,
+					available: localCurrencies.map(c => c.ticker)
+				});
+			}
 
-	try {
-		const allTickers = await getAllTickers();
-		const result = filterByCurrency(currency, allTickers);
+			logger.info(`Fetching prices for ${currency} from Binance`);
+			const allTickers = await binanceService.getAllTickers();
+			const result = binanceService.filterByCurrency(currency, allTickers);
 
-		res.json({
-			currency: currency.toUpperCase(),
-			count: result.length,
-			data: result
-		});
+			logger.info(`Found ${result.length} pairs for ${currency}`);
+			res.json({
+				currency: currency.toUpperCase(),
+				count: result.length,
+				data: result
+			});
+		} catch (error) {
+			logger.error('Failed to fetch Binance prices:', error.message);
+			res.status(502).json({
+				error: 'Failed to fetch data from external service',
+				message: error.message
+			});
+		}
+	});
 
-	} catch (error) {
-		logger.error('Binance fetch error:', error.message);
-		res.status(502).json({
-			error: 'Failed to fetch data from external service',
-			message: error.message
-		});
-	}
-});
+	return router;
+}
 
-module.exports = router;
+module.exports = { createPriceRoutes };

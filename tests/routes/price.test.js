@@ -1,20 +1,15 @@
-jest.mock('../../src/services/binanceService', () => {
-	const actual = jest.requireActual('../../src/services/binanceService');
-	return {
-		...actual,
-		getAllTickers: jest.fn(),
-	};
-});
-
 const request = require('supertest');
-const { app } = require('../../src/app');
-const currencyRepo = require('../../src/repositories/CurrencyRepository');
+const { createTestApp } = require('../helpers/testApp');
 const binanceService = require('../../src/services/binanceService');
 
 
 describe('GET /price', () => {
+	let app, currencyRepo;
+
 	beforeEach(() => {
-		currencyRepo.clear();
+		const testEnv = createTestApp();
+		app = testEnv.app;
+		currencyRepo = testEnv.currencyRepo;
 		jest.clearAllMocks();
 	});
 

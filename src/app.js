@@ -3,6 +3,7 @@ const { initializeDatabase } = require('./database');
 const { scheduleTask } = require('./scheduler');
 const CurrencyRepository = require('./repositories/CurrencyRepository');
 const { createCurrencyRoutes } = require('./routes/currencies');
+const { createPriceRoutes } = require('./routes/prices');
 const swaggerSpec = require('./config/swagger');
 const swaggerUi = require('swagger-ui-express');
 const authenticateToken = require('./middleware/auth');
@@ -16,6 +17,9 @@ function createApp(testDb = null) {
     const db = testDb || initializeDatabase(process.env.DB_PATH || './data/app.sqlite');
 
     const currencyRepo = new CurrencyRepository(db);
+
+    app.use('/currencies', createCurrencyRoutes(currencyRepo));
+    app.use('/price', createPriceRoutes(currencyRepo));
 
     app.use('/currencies', createCurrencyRoutes(currencyRepo));
 

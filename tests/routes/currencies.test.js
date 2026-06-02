@@ -61,7 +61,9 @@ describe('Currencies API', () => {
 			const res = await request(app).get('/currencies');
 			expect(res.status).toBe(200);
 			expect(res.body).toHaveLength(2);
-			expect(res.body[0].ticker).toBe('USD');
+
+			expect(res.body[0].ticker).toBe('EUR');
+			expect(res.body[1].ticker).toBe('USD');
 		});
 	});
 
