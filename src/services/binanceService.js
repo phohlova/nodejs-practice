@@ -16,7 +16,8 @@ const getAllTickers = async () => {
 		logger.error('Binance API error: ', {
 			message: error.message,
 			code: error.code,
-			status: error.response?.status
+			status: error.response?.status,
+			data: error.response.data
 		});
 		throw new Error('Failed to fetch data from Binance');
 	}

@@ -43,7 +43,7 @@ function createApp(testDb = null) {
 const initApp = () => {
     logger.info(`Starting: ${config.appName}`);
 
-    scheduleTask('mainTask', 1000, () => {
+    scheduleTask('mainTask', 10000, () => {
         logger.debug('Main task executed');
         console.log('running');
     });
