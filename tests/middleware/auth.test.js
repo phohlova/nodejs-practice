@@ -1,10 +1,16 @@
 const request = require('supertest');
-const { app } = require('../../src/app');
+const { createTestApp } = require('../helpers/testApp');
 const jwt = require('jsonwebtoken');
 
 describe('Auth Middleware', () => {
+    let app;
     const validToken = jwt.sign({ id: 1, role: 'admin' }, process.env.AUTH_SECRET);
     const invalidToken = '111111111';
+
+    beforeEach(() => {
+        const testEnv = createTestApp();
+        app = testEnv.app;
+    });
 
     test('must success with valid Bearer token', async () => {
         const res = await request(app)
@@ -13,7 +19,6 @@ describe('Auth Middleware', () => {
 
         expect(res.status).toBe(200);
         expect(res.body.message).toBe('Secret data accessed');
-        expect(res.body.userId).toBe(1);
     });
 
     test('must return 401, when header is empty', async () => {

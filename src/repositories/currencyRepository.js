@@ -4,6 +4,17 @@ const DuplicateError = require('../errors/DuplicateError');
 class CurrencyRepository {
 	constructor(db) {
 		this.db = db;
+		this._ensureSchema();
+	}
+
+	_ensureSchema() {
+		this.db.exec(`
+      CREATE TABLE IF NOT EXISTS currencies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        ticker TEXT NOT NULL UNIQUE
+      );
+    `);
 	}
 
 	create(data) {

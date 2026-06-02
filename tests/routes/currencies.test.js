@@ -1,10 +1,13 @@
 const request = require('supertest');
-const { app } = require('../../src/app');
-const currencyRepo = require('../../src/repositories/CurrencyRepository');
+const { createTestApp } = require('../helpers/testApp');
 
 describe('Currencies API', () => {
+	let app, currencyRepo;
+
 	beforeEach(() => {
-		currencyRepo.clear();
+		const testEnv = createTestApp();
+		app = testEnv.app;
+		currencyRepo = testEnv.currencyRepo;
 	});
 
 	describe('POST /currencies', () => {
@@ -16,10 +19,22 @@ describe('Currencies API', () => {
 
 			expect(res.status).toBe(201);
 			expect(res.body).toMatchObject({
-				id: 1,
 				name: 'Euro',
 				ticker: 'EUR'
 			});
+			expect(res.body.id).toBe(1);
+
+		});
+
+		test('must return 409 if ticker already exists', async () => {
+			currencyRepo.create({ name: 'USD', ticker: 'USD' });
+
+			const res = await request(app)
+				.post('/currencies')
+				.send({ name: 'Another USD', ticker: 'USD' });
+
+			expect(res.status).toBe(409);
+			expect(res.body.error).toContain('already exists');
 		});
 
 		test('must return 400, if no name or ticker', async () => {
