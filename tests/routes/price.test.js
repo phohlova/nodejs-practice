@@ -1,3 +1,11 @@
+jest.mock('../../src/services/binanceService', () => {
+	const actual = jest.requireActual('../../src/services/binanceService');
+	return {
+		...actual, 
+		getAllTickers: jest.fn(),
+	};
+});
+
 const request = require('supertest');
 const { createTestApp } = require('../helpers/testApp');
 const binanceService = require('../../src/services/binanceService');

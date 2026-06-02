@@ -1,6 +1,7 @@
 const express = require('express');
 const { getAllTickers, filterByCurrency } = require('../services/binanceService');
 const logger = require('../logger');
+const binanceService = require('../services/binanceService');
 
 function createPriceRoutes(currencyRepo) {
 	const router = express.Router();
