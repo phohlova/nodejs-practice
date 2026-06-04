@@ -1,6 +1,17 @@
 class ExchangeRateRepository {
     constructor(db) {
         this.db = db;
+        this._ensureSchema();
+    }
+
+    _ensureSchema() {
+        this.db.exec(`
+      CREATE TABLE IF NOT EXISTS exchange_rates (
+        pair TEXT PRIMARY KEY,
+        price REAL NOT NULL,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
     }
 
     findByCurrency(currency) {
