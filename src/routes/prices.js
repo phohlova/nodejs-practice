@@ -1,7 +1,5 @@
 const express = require('express');
-const { getAllTickers, filterByCurrency } = require('../services/binanceService');
 const logger = require('../logger');
-const binanceService = require('../services/binanceService');
 
 function createPriceRoutes(currencyRepo) {
 	const router = express.Router();
@@ -36,35 +34,25 @@ function createPriceRoutes(currencyRepo) {
 				return res.status(400).json({ error: 'Query parameter "currency" is required' });
 			}
 
-			const localCurrencies = currencyRepo.findAll();
-			const exists = localCurrencies.some(c => 
-				c.ticker.toUpperCase() === currency.toUpperCase()
-			);
+			const rates = rateRepo.findByCurrency(currency.toUpperCase());
 
-			if (!exists) {
-				logger.warn(`Currency "${currency}" not found in local database`);
+			if (rates.length === 0) {
 				return res.status(404).json({
-					error: `Currency "${currency}" not found in database`,
-					available: localCurrencies.map(c => c.ticker)
+					error: `No exchange rates found for "${currency}"`
 				});
 			}
 
-			logger.info(`Fetching prices for ${currency} from Binance`);
-			const allTickers = await binanceService.getAllTickers();
-			const result = binanceService.filterByCurrency(currency, allTickers);
+			logger.debug(`Serving ${rates.length} rates for ${currency} from DB cache`);
 
-			logger.info(`Found ${result.length} pairs for ${currency}`);
 			res.json({
 				currency: currency.toUpperCase(),
-				count: result.length,
-				data: result
+				count: rates.length,
+				data: rates,
+				source: 'database_cache'
 			});
+
 		} catch (error) {
-			logger.error('Failed to fetch Binance prices:', error.message);
-			res.status(502).json({
-				error: 'Failed to fetch data from external service',
-				message: error.message
-			});
+			next(error);
 		}
 	});
 
