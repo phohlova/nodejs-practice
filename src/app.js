@@ -1,14 +1,13 @@
 const express = require('express');
 const { initializeDatabase } = require('./database');
-const { scheduleTask } = require('./scheduler');
 const CurrencyRepository = require('./repositories/CurrencyRepository');
+const ExchangeRateRepository = require('./repositories/ExchangeRateRepository');
 const { createCurrencyRoutes } = require('./routes/currencies');
 const { createPriceRoutes } = require('./routes/prices');
 const swaggerSpec = require('./config/swagger');
 const swaggerUi = require('swagger-ui-express');
 const authenticateToken = require('./middleware/auth');
 const logger = require('./logger');
-const config = require('./config');
 
 function createApp(testDb = null) {
     const app = express();
@@ -17,11 +16,10 @@ function createApp(testDb = null) {
     const db = testDb || initializeDatabase(process.env.DB_PATH || './data/app.sqlite');
 
     const currencyRepo = new CurrencyRepository(db);
+    const rateRepo = new ExchangeRateRepository(db);
 
     app.use('/currencies', createCurrencyRoutes(currencyRepo));
-    app.use('/price', createPriceRoutes(currencyRepo));
-
-    app.use('/currencies', createCurrencyRoutes(currencyRepo));
+    app.use('/price', createPriceRoutes(rateRepo));
 
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     app.get('/status', (req, res) => res.status(200).send('ok'));
@@ -37,16 +35,7 @@ function createApp(testDb = null) {
         res.status(status).json({ error: message });
     });
 
-    return { app, db, currencyRepo };
+    return { app, db, currencyRepo, rateRepo };
 }
 
-const initApp = () => {
-    logger.info(`Starting: ${config.appName}`);
-
-    scheduleTask('mainTask', 10000, () => {
-        logger.debug('Main task executed');
-        console.log('running');
-    });
-};
-
-module.exports = { createApp, initApp };
+module.exports = { createApp };
