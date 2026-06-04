@@ -14,10 +14,16 @@ function initializeDatabase(dbPath) {
 
     db.exec(`
     CREATE TABLE IF NOT EXISTS currencies (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      name TEXT NOT NULL,
-      ticker TEXT NOT NULL UNIQUE
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL,
+		ticker TEXT NOT NULL UNIQUE
     );
+    
+	CREATE TABLE IF NOT EXISTS exchange_rates (
+		pair TEXT PRIMARY KEY,
+		price REAL NOT NULL,
+		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  	);
   `);
 
     logger.info('Database schema verified/created');
