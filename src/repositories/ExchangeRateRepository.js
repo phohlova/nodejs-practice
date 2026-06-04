@@ -3,6 +3,15 @@ class ExchangeRateRepository {
         this.db = db;
     }
 
+    findByCurrency(currency) {
+        return this.db.prepare(`
+      SELECT pair, price, updated_at 
+      FROM exchange_rates 
+      WHERE pair LIKE ? 
+      ORDER BY price DESC
+    `).all(`%${currency}%`);
+    }
+
     upsert(pair, price) {
         return this.db.prepare(`
       INSERT INTO exchange_rates (pair, price, updated_at) 
@@ -11,15 +20,6 @@ class ExchangeRateRepository {
         price = excluded.price, 
         updated_at = CURRENT_TIMESTAMP
     `).run(pair, price);
-    }
-
-    findByCurrency(currency) {
-        return this.db.prepare(`
-      SELECT pair, price, updated_at 
-      FROM exchange_rates 
-      WHERE pair LIKE ? 
-      ORDER BY price DESC
-    `).all(`%${currency}%`);
     }
 
     clear() {

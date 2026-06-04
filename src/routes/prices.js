@@ -1,7 +1,7 @@
-const express = require('express');
 const logger = require('../logger');
 
-function createPriceRoutes(currencyRepo) {
+function createPriceRoutes(rateRepo) {
+	const express = require('express');
 	const router = express.Router();
 
 	/**
