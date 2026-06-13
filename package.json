@@ -23,12 +23,18 @@
   },
   "homepage": "https://github.com/phohlova/nodejs-practice#readme",
   "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.9.3",
     "jest": "^30.4.2",
-    "supertest": "^7.2.2"
+    "supertest": "^7.2.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.3"
   },
   "jest": {
     "testEnvironment": "node",
-    "setupFilesAfterEnv": ["./jest.setup.js"],
+    "setupFilesAfterEnv": [
+      "./jest.setup.js"
+    ],
     "coverageDirectory": "./coverage",
     "collectCoverageFrom": [
       "src/**/*.js"
