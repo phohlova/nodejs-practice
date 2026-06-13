@@ -1,9 +1,29 @@
-const express = require('express');
+import express, { Router, Request, Response, NextFunction } from 'express';
+import { DuplicateError } from '../errors/DuplicateError';
 const logger = require('../logger');
-const DuplicateError = require('../errors/DuplicateError');
 
-function createCurrencyRoutes(currencyRepo) {
-	const router = express.Router();
+interface Currency {
+	id: number;
+	name: string;
+	ticker: string;
+}
+
+interface CurrencyData {
+	name: string;
+	ticker: string;
+}
+
+interface ICurrencyRepository {
+	create(data: CurrencyData): Currency;
+	findAll(): Currency[];
+	findById(id: number): Currency | undefined;
+	update(id: number, data: Partial<CurrencyData>): Currency | undefined;
+	remove(id: number): boolean;
+	clear(): void;
+}
+
+function createCurrencyRoutes(currencyRepo: ICurrencyRepository): Router {
+	const router: Router = express.Router();
 
 	/**
 	 * @openapi
@@ -31,7 +51,7 @@ function createCurrencyRoutes(currencyRepo) {
 	 *                     type: string
 	 *                     example: USD
 	*/
-	router.get('/', (req, res, next) => {
+	router.get('/', (req: Request, res: Response, next: NextFunction) => {
 		try {
 			res.json(currencyRepo.findAll());
 		} catch (err) {
@@ -79,16 +99,20 @@ function createCurrencyRoutes(currencyRepo) {
 	 *       400:
 	 *         description: Ошибка валидации
 	 */
-	router.post('/', (req, res, next) => {
+	router.post('/', (req: Request, res: Response, next: NextFunction) => {
 		try {
 			const { name, ticker } = req.body;
-			if (!name || !ticker) return res.status(400).json({ error: 'name and ticker required' });
+			if (!name || !ticker) {
+				return res.status(400).json({ error: 'name and ticker required' });
+			}
 
 			const currency = currencyRepo.create({ name, ticker });
 			logger.info(`Currency created: ${currency.ticker}`);
 			res.status(201).json(currency);
 		} catch (err) {
-			if (err instanceof DuplicateError) return res.status(409).json({ error: err.message });
+			if (err instanceof DuplicateError) {
+				return res.status(409).json({ error: err.message });
+			}
 			next(err);
 		}
 	});
@@ -122,12 +146,17 @@ function createCurrencyRoutes(currencyRepo) {
 	 *       404:
 	 *         description: Валюта не найдена
 	 */
-	router.get('/:id', (req, res, next) => {
+	router.get('/:id', (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const currency = currencyRepo.findById(Number(req.params.id));
-			if (!currency) return res.status(404).json({ error: 'Currency not found' });
+			const id = Number(req.params.id);
+			const currency = currencyRepo.findById(id);
+			if (!currency) {
+				return res.status(404).json({ error: 'Currency not found' });
+			}
 			res.json(currency);
-		} catch (err) { next(err); }
+		} catch (err) {
+			next(err);
+		}
 	});
 
 	/**
@@ -169,13 +198,18 @@ function createCurrencyRoutes(currencyRepo) {
 	 *       404:
 	 *         description: Валюта не найдена
 	 */
-	router.put('/:id', (req, res, next) => {
+	router.put('/:id', (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const updated = currencyRepo.update(Number(req.params.id), req.body);
-			if (!updated) return res.status(404).json({ error: 'Currency not found' });
+			const id = Number(req.params.id);
+			const updated = currencyRepo.update(id, req.body);
+			if (!updated) {
+				return res.status(404).json({ error: 'Currency not found' });
+			}
 			res.json(updated);
 		} catch (err) {
-			if (err instanceof DuplicateError) return res.status(409).json({ error: err.message });
+			if (err instanceof DuplicateError) {
+				return res.status(409).json({ error: err.message });
+			}
 			next(err);
 		}
 	});
@@ -198,12 +232,17 @@ function createCurrencyRoutes(currencyRepo) {
 	 *       404:
 	 *         description: Валюта не найдена
 	 */
-	router.delete('/:id', (req, res, next) => {
+	router.delete('/:id', (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const removed = currencyRepo.remove(Number(req.params.id));
-			if (!removed) return res.status(404).json({ error: 'Currency not found' });
+			const id = Number(req.params.id);
+			const removed = currencyRepo.remove(id);
+			if (!removed) {
+				return res.status(404).json({ error: 'Currency not found' });
+			}
 			res.status(204).send();
-		} catch (err) { next(err); }
+		} catch (err) {
+			next(err);
+		}
 	});
 
 	return router;

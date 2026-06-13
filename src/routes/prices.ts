@@ -1,8 +1,20 @@
+import express, { Router, Request, Response, NextFunction } from 'express';
 const logger = require('../logger');
 
-function createPriceRoutes(rateRepo) {
-	const express = require('express');
-	const router = express.Router();
+interface ExchangeRate {
+	pair: string;
+	price: number;
+	updated_at: string;
+}
+
+interface IExchangeRateRepository {
+	findByCurrency(currency: string): ExchangeRate[];
+	upsert(pair: string, price: number): void;
+	clear(): void;
+}
+
+function createPriceRoutes(rateRepo: IExchangeRateRepository): Router {
+	const router: Router = express.Router();
 
 	/**
 	 * @openapi
@@ -26,9 +38,9 @@ function createPriceRoutes(rateRepo) {
 	 *       502:
 	 *         description: Ошибка Binance API
 	 */
-	router.get('/', async (req, res, next) => {
+	router.get('/', (req: Request, res: Response, next: NextFunction) => {
 		try {
-			const { currency } = req.query;
+			const currency = req.query.currency as string | undefined;
 
 			if (!currency) {
 				return res.status(400).json({ error: 'Query parameter "currency" is required' });
@@ -50,7 +62,6 @@ function createPriceRoutes(rateRepo) {
 				data: rates,
 				source: 'database_cache'
 			});
-
 		} catch (error) {
 			next(error);
 		}
