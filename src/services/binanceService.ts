@@ -15,7 +15,7 @@ interface ProcessedTicker {
 
 const binanceClient: AxiosInstance = axios.create({
 	baseURL: 'https://api.binance.com',
-	timeout: 10000,
+	timeout: 30000,
 	headers: { 'User-Agent': 'nodejs-practice/1.0' }
 });
 

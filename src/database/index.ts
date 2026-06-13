@@ -24,6 +24,13 @@ export function initializeDatabase(dbPath: string): Database.Database {
         price REAL NOT NULL,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       );
+
+	  CREATE TABLE IF NOT EXISTS addresses (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		address TEXT NOT NULL UNIQUE,
+		label TEXT NOT NULL,
+		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	  );
     `);
 
     logger.info('Database schema verified/created');
