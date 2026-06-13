@@ -4,7 +4,10 @@
   "description": "testing",
   "main": "main.js",
   "scripts": {
-    "test": "jest"
+    "start": "node src/main.js",
+    "test": "jest",
+    "db:init": "node src/scripts/init-db.js",
+    "db:reset": "del /Q data/app.sqlite 2>nul & && npm run db:init"
   },
   "repository": {
     "type": "git",
@@ -25,6 +28,7 @@
   },
   "jest": {
     "testEnvironment": "node",
+    "setupFilesAfterEnv": ["./jest.setup.js"],
     "coverageDirectory": "./coverage",
     "collectCoverageFrom": [
       "src/**/*.js"
@@ -36,6 +40,7 @@
   },
   "dependencies": {
     "axios": "^1.16.1",
+    "better-sqlite3": "^12.10.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",

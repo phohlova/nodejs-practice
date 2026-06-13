@@ -1,31 +1,96 @@
-let currencies = new Map();
-let nextId = 1;
+const DatabaseError = require('../errors/DatabaseError');
+const DuplicateError = require('../errors/DuplicateError');
 
-const create = (data) => {
-	const id = nextId++;
-	const currency = { id, ...data };
-	currencies.set(id, currency);
-	return currency;
-};
+class CurrencyRepository {
+	constructor(db) {
+		this.db = db;
+		this._ensureSchema();
+	}
 
-const findAll = () => Array.from(currencies.values());
+	_ensureSchema() {
+		this.db.exec(`
+      CREATE TABLE IF NOT EXISTS currencies (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        ticker TEXT NOT NULL UNIQUE
+      );
+    `);
+	}
 
-const findById = (id) => currencies.get(id);
+	create(data) {
+		try {
+			const stmt = this.db.prepare('INSERT INTO currencies (name, ticker) VALUES (?, ?)');
+			const info = stmt.run(data.name, data.ticker);
+			return { id: Number(info.lastInsertRowid), name: data.name, ticker: data.ticker };
+		} catch (err) {
+			if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+				throw new DuplicateError(`Ticker '${data.ticker}' already exists`);
+			}
+			throw new DatabaseError(`Failed to create currency: ${err.message}`);
+		}
+	}
 
-const update = (id, data) => {
-	const existing = currencies.get(id);
-	if (!existing) return undefined;
+	findAll() {
+		try {
+			return this.db.prepare('SELECT id, name, ticker FROM currencies ORDER BY id DESC').all();
+		} catch (err) {
+			throw new DatabaseError(`Failed to fetch currencies: ${err.message}`);
+		}
+	}
 
-	const updated = { ...existing, ...data, id };
-	currencies.set(id, updated);
-	return updated;
-};
+	findById(id) {
+		try {
+			return this.db.prepare('SELECT id, name, ticker FROM currencies WHERE id = ?').get(id);
+		} catch (err) {
+			throw new DatabaseError(`Failed to find currency by id ${id}: ${err.message}`);
+		}
+	}
 
-const remove = (id) => currencies.delete(id);
+	update(id, data) {
+		try {
+			const existing = this.findById(id);
+			if (!existing) return undefined;
 
-const clear = () => {
-	currencies.clear();
-	nextId = 1;
-};
+			const sets = [];
+			const params = [];
 
-module.exports = { create, findAll, findById, update, remove, clear };
+			if (data.name !== undefined) { 
+				sets.push('name = ?'); 
+				params.push(data.name); 
+			}
+
+			if (data.ticker !== undefined) { 
+				sets.push('ticker = ?'); 
+				params.push(data.ticker); 
+			}
+
+			if (sets.length === 0) return existing;
+
+			params.push(id);
+			this.db.prepare(`UPDATE currencies SET ${sets.join(', ')} WHERE id = ?`).run(params);
+
+			return this.findById(id);
+		} catch (err) {
+			if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+				throw new DuplicateError(`Ticker '${data.ticker}' is already taken by another currency`);
+			}
+			throw new DatabaseError(`Failed to update currency ${id}: ${err.message}`);
+		}
+	}
+
+	remove(id) {
+		try {
+			const info = this.db.prepare('DELETE FROM currencies WHERE id = ?').run(id);
+			return info.changes > 0;
+		} catch (err) {
+			throw new DatabaseError(`Failed to delete currency ${id}: ${err.message}`);
+		}
+	}
+
+	clear() {
+		this.db.exec('DELETE FROM currencies');
+		this.db.exec("DELETE FROM sqlite_sequence WHERE name = 'currencies'");
+	}
+}
+
+module.exports = CurrencyRepository;
