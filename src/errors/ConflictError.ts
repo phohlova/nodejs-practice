@@ -1,9 +1,9 @@
 const AppError = require('./AppError');
 
-class ConflictError extends AppError {
-    constructor(resource) {
+export class ConflictError extends AppError {
+    constructor(resource: string) {
         super(`${resource} already exists`, 409);
-        this.name = 'ConflictError'
+        this.name = 'ConflictError';
     }
 }
 

@@ -1,7 +1,7 @@
 const AppError = require('./AppError');
 
-class ValidationError extends AppError {
-    constructor(message) {
+export class ValidationError extends AppError {
+    constructor(message: string) {
         super(message, 400);
         this.name = 'ValidationError';
     }

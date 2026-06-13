@@ -1,4 +1,6 @@
-const writeConsole = (level, message) => {
+import { LogLevel } from './types';
+
+const writeConsole = (level: LogLevel, message: string): void => {
     switch (level) {
         case 'error':
             console.error(message);
@@ -10,6 +12,6 @@ const writeConsole = (level, message) => {
             console.log(message);
             break;
     }
-}
+};
 
-module.exports = { writeConsole }; 
+module.exports = { writeConsole };

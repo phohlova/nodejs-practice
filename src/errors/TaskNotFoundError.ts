@@ -1,7 +1,7 @@
 const AppError = require('./AppError');
 
-class TaskNotFoundError extends AppError {
-    constructor(taskName) {
+export class TaskNotFoundError extends AppError {
+    constructor(taskName: string) {
         super(`Task "${taskName}" not found`, 404);
         this.name = 'TaskNotFoundError';
     }
