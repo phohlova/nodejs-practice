@@ -1,7 +1,10 @@
-const ValidationError = require("../errors/ValidationError");
+import { ValidationError } from '../errors/ValidationError';
 
-const validateTaskParams = (name, interval, task) => {
-
+export const validateTaskParams = (
+    name: string,
+    interval: number,
+    task: () => void
+): void => {
     if (typeof name !== 'string' || !name.trim()) {
         throw new ValidationError('Task name must not be empty');
     }

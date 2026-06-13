@@ -13,7 +13,7 @@ interface IExchangeRateRepository {
 	clear(): void;
 }
 
-function createPriceRoutes(rateRepo: IExchangeRateRepository): Router {
+export function createPriceRoutes(rateRepo: IExchangeRateRepository): Router {
 	const router: Router = express.Router();
 
 	/**

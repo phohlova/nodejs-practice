@@ -6,8 +6,8 @@ interface ExchangeRate {
 	updated_at: string;
 	}
 
-	class ExchangeRateRepository {
-	private db: Database.Database;
+export class ExchangeRateRepository {
+	db: Database.Database;
 
 	constructor(db: Database.Database) {
 		this.db = db;
@@ -49,3 +49,4 @@ interface ExchangeRate {
 }
 
 module.exports = ExchangeRateRepository;
+module.exports.ExchangeRateRepository = ExchangeRateRepository;

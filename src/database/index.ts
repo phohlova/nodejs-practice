@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 const logger = require('../logger');
 
-function initializeDatabase(dbPath: string): Database.Database {
+export function initializeDatabase(dbPath: string): Database.Database {
     const absolutePath: string = path.resolve(dbPath);
     logger.info(`Initializing database at: ${absolutePath}`);
 

@@ -12,7 +12,7 @@ interface CurrencyData {
 	ticker: string;
 }
 
-class CurrencyRepository {
+export class CurrencyRepository {
 	private db: Database.Database;
 
 	constructor(db: Database.Database) {
@@ -109,3 +109,4 @@ class CurrencyRepository {
 }
 
 module.exports = CurrencyRepository;
+module.exports.CurrencyRepository = CurrencyRepository;

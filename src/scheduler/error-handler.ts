@@ -1,4 +1,4 @@
-const handleTaskError = (taskName, error) => {
+export const handleTaskError = (taskName: string, error: Error): void => {
     console.error(`Error in task "${taskName}":`, error.message);
 };
 

@@ -22,7 +22,7 @@ interface ICurrencyRepository {
 	clear(): void;
 }
 
-function createCurrencyRoutes(currencyRepo: ICurrencyRepository): Router {
+export function createCurrencyRoutes(currencyRepo: ICurrencyRepository): Router {
 	const router: Router = express.Router();
 
 	/**

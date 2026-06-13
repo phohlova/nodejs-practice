@@ -1,25 +1,28 @@
-const { validateTaskParams } = require('./validator');
-const { createRepeatingTimer, cancelTimer } = require('./timer-manager');
-const { TaskRegistry } = require('./task-registry');
+import { validateTaskParams } from './validator';
+import { createRepeatingTimer, cancelTimer } from './timer-manager';
+import { TaskRegistry } from './task-registry';
+import { handleTaskError } from './error-handler';
+import { TaskNotFoundError } from '../errors/TaskNotFoundError';
 const logger = require('../logger');
-const { handleTaskError } = require('./error-handler');
-const TaskNotFoundError = require('../errors/TaskNotFoundError');
 
 const registry = new TaskRegistry();
 
-const scheduleTask = (name, interval, task) => {
+export const scheduleTask = (
+    name: string,
+    interval: number,
+    task: () => void
+): string => {
     validateTaskParams(name, interval, task);
 
-    const wrappedTask = () => {
+    const wrappedTask = (): void => {
         try {
             task();
         } catch (error) {
-            handleTaskError(name, error);
+            handleTaskError(name, error as Error);
         }
     };
 
     const timerId = createRepeatingTimer(interval, wrappedTask);
-
     registry.register(name, timerId);
 
     logger.info(`Task "${name}" registered (interval: ${interval}ms)`);
@@ -27,13 +30,13 @@ const scheduleTask = (name, interval, task) => {
     return name;
 };
 
-const cancelTask = (name) => {
+export const cancelTask = (name: string): boolean => {
     if (!registry.has(name)) {
         throw new TaskNotFoundError(name);
     }
 
     const timerId = registry.unregister(name);
-    cancelTimer(timerId);
+    cancelTimer(timerId!);
     logger.info(`Task "${name}" cancelled`);
 
     return true;
