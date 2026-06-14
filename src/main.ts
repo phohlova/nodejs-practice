@@ -5,7 +5,7 @@ const binanceService = require('./services/binanceService');
 const config = require('./config/index');
 const logger = require('./logger');
 
-const { app, db, currencyRepo, rateRepo } = createApp();
+const { app, db, currencyRepo, rateRepo, priceHistoryRepo } = createApp();
 
 const initApp = (): { syncIntervalId: NodeJS.Timeout } => {
     logger.info(`Starting: ${config.appName}`);
@@ -17,10 +17,10 @@ const initApp = (): { syncIntervalId: NodeJS.Timeout } => {
 
     logger.info('Starting background price sync (interval: 60000ms)');
 
-    syncPrices(binanceService, rateRepo);
+    syncPrices(binanceService, rateRepo, priceHistoryRepo);
 
     const syncIntervalId: NodeJS.Timeout = setInterval(() => {
-        syncPrices(binanceService, rateRepo);
+        syncPrices(binanceService, rateRepo, priceHistoryRepo);
     }, 60000);
 
     return { syncIntervalId };
@@ -28,7 +28,7 @@ const initApp = (): { syncIntervalId: NodeJS.Timeout } => {
 
 const { syncIntervalId } = initApp();
     const server = app.listen(config.settings.port, () => {
-    logger.info(`Server listening on port ${config.settings.port}`);
+        logger.info(`Server listening on port ${config.settings.port}`);
     });
 
 const shutdown = (signal: string): void => {

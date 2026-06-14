@@ -19,9 +19,14 @@ interface IExchangeRateRepository {
     db: Database.Database;
 }
 
+interface IPriceHistoryRepository {
+    create(pair: string, price: number): void;
+}
+
 export async function syncPrices(
     binanceService: IBinanceService,
-    rateRepo: IExchangeRateRepository
+    rateRepo: IExchangeRateRepository,
+    priceHistoryRepo: IPriceHistoryRepository
 ): Promise<void> {
     try {
         logger.info('Starting price sync from Binance...');
@@ -29,14 +34,18 @@ export async function syncPrices(
         const tickers = await binanceService.getAllTickers();
 
         const stmt = rateRepo.db.prepare(`
-      INSERT INTO exchange_rates (pair, price, updated_at) 
-      VALUES (?, ?, CURRENT_TIMESTAMP)
-      ON CONFLICT(pair) DO UPDATE SET price = excluded.price, updated_at = CURRENT_TIMESTAMP
-    `);
+            INSERT INTO exchange_rates (pair, price, updated_at) 
+            VALUES (?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(pair) DO UPDATE SET price = excluded.price, updated_at = CURRENT_TIMESTAMP
+        `);
 
         const insertMany = rateRepo.db.transaction((rows: ExchangeRateRow[]) => {
             for (const row of rows) {
                 stmt.run(row.pair, row.price);
+
+                if (priceHistoryRepo) {
+                    priceHistoryRepo.create(row.pair, row.price);
+                }
             }
         });
 

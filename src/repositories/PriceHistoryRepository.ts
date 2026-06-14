@@ -85,4 +85,5 @@ export class PriceHistoryRepository {
   }
 }
 
-module.exports = { PriceHistoryRepository };
+module.exports = PriceHistoryRepository;
+module.exports.PriceHistoryRepository = PriceHistoryRepository;

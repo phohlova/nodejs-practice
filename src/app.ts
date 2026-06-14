@@ -9,6 +9,8 @@ import { createCurrencyRoutes } from './routes/currencies';
 import { createPriceRoutes } from './routes/prices';
 import { AddressRepository } from './repositories/AddressRepository';
 import { createAddressRoutes } from './routes/addresses';
+import { PriceHistoryRepository } from './repositories/PriceHistoryRepository';
+import { createPriceHistoryRoutes } from './routes/priceHistory';
 const swaggerSpec = require('./config/swagger');
 const authenticateToken = require('./middleware/auth');
 const logger = require('./logger');
@@ -19,6 +21,7 @@ interface AppContext {
     currencyRepo: CurrencyRepository;
     rateRepo: ExchangeRateRepository;
     addressRepo: AddressRepository;
+    priceHistoryRepo: PriceHistoryRepository;
 }
 
 export function createApp(testDb: Database.Database | null = null): AppContext {
@@ -30,10 +33,12 @@ export function createApp(testDb: Database.Database | null = null): AppContext {
     const currencyRepo = new CurrencyRepository(db);
     const rateRepo = new ExchangeRateRepository(db);
     const addressRepo = new AddressRepository(db);
+    const priceHistoryRepo = new PriceHistoryRepository(db);
 
     app.use('/currencies', createCurrencyRoutes(currencyRepo));
     app.use('/price', createPriceRoutes(rateRepo));
     app.use('/addresses', createAddressRoutes(addressRepo));
+    app.use('/history', createPriceHistoryRoutes(priceHistoryRepo));
 
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     
@@ -52,7 +57,7 @@ export function createApp(testDb: Database.Database | null = null): AppContext {
         res.status(status).json({ error: message });
     });
 
-    return { app, db, currencyRepo, rateRepo, addressRepo };
+    return { app, db, currencyRepo, rateRepo, addressRepo, priceHistoryRepo };
 }
 
 module.exports = { createApp };
