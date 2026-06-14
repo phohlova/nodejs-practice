@@ -1,5 +1,6 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import { PriceHistoryRepository } from '../repositories/PriceHistoryRepository';
+import { validate } from '../middleware/validate';
 const logger = require('../logger');
 
 export function createPriceHistoryRoutes(
@@ -56,57 +57,50 @@ export function createPriceHistoryRoutes(
 	 *       400: { description: Ошибка валидации параметров }
 	 *       404: { description: История не найдена }
 	 */
-	router.get('/:pair', (req: Request, res: Response, next: NextFunction) => {
-		try {
-			const { pair } = req.params;
-			const { from, to, limit } = req.query;
+	router.get('/:pair',
+		validate([
+			{ field: 'pair', required: true, type: 'string', minLength: 1 },
+			{ field: 'limit', type: 'number', min: 1, max: 1000 }
+		]),
+		(req: Request, res: Response, next: NextFunction) => {
+			try {
+				const pair = req.params.pair as string;
+				const { from, to, limit } = req.query;
 
-			if (!pair || typeof pair !== 'string' || !pair.trim()) {
-				return res.status(400).json({ error: 'Currency pair is required' });
-			}
-
-			if (limit !== undefined) {
-				const limitNum = Number(limit);
-				if (isNaN(limitNum) || limitNum < 1 || limitNum > 1000) {
-					return res.status(400).json({
-						error: 'Limit must be a number between 1 and 1000'
-				});
+				if (from !== undefined && isNaN(Date.parse(from as string))) {
+					return res.status(400).json({ error: 'Invalid "from" date format' });
 				}
-			}
+				if (to !== undefined && isNaN(Date.parse(to as string))) {
+					return res.status(400).json({ error: 'Invalid "to" date format' });
+				}
 
-			if (from !== undefined && isNaN(Date.parse(from as string))) {
-				return res.status(400).json({ error: 'Invalid "from" date format' });
-			}
-			if (to !== undefined && isNaN(Date.parse(to as string))) {
-				return res.status(400).json({ error: 'Invalid "to" date format' });
-			}
-
-			const history = priceHistoryRepo.findByPair({
-				pair: pair.toUpperCase(),
-				from: from as string | undefined,
-				to: to as string | undefined,
-				limit: limit ? Number(limit) : undefined
-			});
-
-			if (history.length === 0) {
-				return res.status(404).json({
-					error: `No price history found for pair "${pair.toUpperCase()}"`
+				const history = priceHistoryRepo.findByPair({
+					pair: pair.toUpperCase(),
+					from: from as string | undefined,
+					to: to as string | undefined,
+					limit: limit ? Number(limit) : undefined
 				});
+
+				if (history.length === 0) {
+					return res.status(404).json({
+					error: `No price history found for pair "${pair.toUpperCase()}"`
+					});
+				}
+
+				logger.debug(
+					`Serving ${history.length} history records for ${pair.toUpperCase()}`
+				);
+
+				res.json({
+					pair: pair.toUpperCase(),
+					count: history.length,
+					data: history
+				});
+			} catch (err) {
+				next(err);
 			}
-
-			logger.debug(
-				`Serving ${history.length} history records for ${pair.toUpperCase()}`
-			);
-
-			res.json({
-				pair: pair.toUpperCase(),
-				count: history.length,
-				data: history
-			});
-		} catch (err) {
-			next(err);
 		}
-	});
+	);
 	return router;
 }
 

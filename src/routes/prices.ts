@@ -1,4 +1,5 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
+import { validate } from '../middleware/validate';
 const logger = require('../logger');
 
 interface ExchangeRate {
@@ -38,34 +39,33 @@ export function createPriceRoutes(rateRepo: IExchangeRateRepository): Router {
 	 *       502:
 	 *         description: Ошибка Binance API
 	 */
-	router.get('/', (req: Request, res: Response, next: NextFunction) => {
-		try {
-			const currency = req.query.currency as string | undefined;
+	router.get('/',
+		validate([{ field: 'currency', required: true, type: 'string', minLength: 1 }]),
+		(req: Request, res: Response, next: NextFunction) => {
+			try {
+				const currency = req.query.currency as string;
 
-			if (!currency) {
-				return res.status(400).json({ error: 'Query parameter "currency" is required' });
-			}
+				const rates = rateRepo.findByCurrency(currency.toUpperCase());
 
-			const rates = rateRepo.findByCurrency(currency.toUpperCase());
-
-			if (rates.length === 0) {
-				return res.status(404).json({
+				if (rates.length === 0) {
+					return res.status(404).json({
 					error: `No exchange rates found for "${currency}"`
+					});
+				}
+
+				logger.debug(`Serving ${rates.length} rates for ${currency} from DB cache`);
+
+				res.json({
+					currency: currency.toUpperCase(),
+					count: rates.length,
+					data: rates,
+					source: 'database_cache'
 				});
+			} catch (error) {
+				next(error);
 			}
-
-			logger.debug(`Serving ${rates.length} rates for ${currency} from DB cache`);
-
-			res.json({
-				currency: currency.toUpperCase(),
-				count: rates.length,
-				data: rates,
-				source: 'database_cache'
-			});
-		} catch (error) {
-			next(error);
 		}
-	});
+	);
 
 	return router;
 }
