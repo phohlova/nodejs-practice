@@ -1,6 +1,7 @@
 import express, { Router, Request, Response, NextFunction } from 'express';
 import { AddressRepository } from '../repositories/AddressRepository';
 import { AppError } from '../errors/AppError';
+import { validate } from '../middleware/validate';
 const logger = require('../logger');
 
 export function createAddressRoutes(addressRepo: AddressRepository): Router {
@@ -57,31 +58,30 @@ export function createAddressRoutes(addressRepo: AddressRepository): Router {
      *       400: { description: Ошибка валидации }
      *       409: { description: Адрес уже существует }
      */
-    router.post('/', (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const { address, label } = req.body;
+    router.post('/', 
+        validate([
+            { field: 'address', required: true, type: 'string', minLength: 5 },
+            { field: 'label', required: true, type: 'string', minLength: 1 }
+        ]),
+        (req: Request, res: Response, next: NextFunction) => {
+            try {
+                const { address, label } = req.body;
 
-            if (!address || typeof address !== 'string' || !address.trim()) {
-                return res.status(400).json({ error: 'Field "address" is required and must be a non-empty string' });
-            }
-            if (!label || typeof label !== 'string' || !label.trim()) {
-                return res.status(400).json({ error: 'Field "label" is required and must be a non-empty string' });
-            }
+                const created = addressRepo.create({
+                    address: address.trim(),
+                    label: label.trim()
+                });
 
-            const created = addressRepo.create({
-                address: address.trim(),
-                label: label.trim()
-            });
-
-            logger.info(`Address created: ${created.address}`);
-            res.status(201).json(created);
-        } catch (err) {
-            if (err instanceof AppError && err.statusCode === 409) {
-                return res.status(409).json({ error: err.message });
+                logger.info(`Address created: ${created.address}`);
+                res.status(201).json(created);
+            } catch (err) {
+                if (err instanceof AppError && err.statusCode === 409) {
+                    return res.status(409).json({ error: err.message });
+                }
+                next(err);
             }
-            next(err);
         }
-    });
+    );
 
     /**
      * @openapi
@@ -139,39 +139,35 @@ export function createAddressRoutes(addressRepo: AddressRepository): Router {
      *       404: { description: Адрес не найден }
      *       409: { description: Адрес уже занят }
      */
-    router.put('/:id', (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const id = Number(req.params.id);
-            if (isNaN(id)) {
-                return res.status(400).json({ error: 'Invalid id format' });
-            }
+    router.put('/:id',
+        validate([
+            { field: 'id', required: true, type: 'number', min: 1 },
+            { field: 'address', type: 'string', minLength: 5 },
+            { field: 'label', type: 'string', minLength: 1 }
+        ]),
+        (req: Request, res: Response, next: NextFunction) => {
+            try {
+                const id = Number(req.params.id);
+                const { address, label } = req.body;
 
-            const { address, label } = req.body;
+                const updated = addressRepo.update(id, {
+                    address: address?.trim(),
+                    label: label?.trim()
+                });
 
-            if (address !== undefined && (typeof address !== 'string' || !address.trim())) {
-                return res.status(400).json({ error: 'Field "address" must be a non-empty string' });
-            }
-            if (label !== undefined && (typeof label !== 'string' || !label.trim())) {
-                return res.status(400).json({ error: 'Field "label" must be a non-empty string' });
-            }
+                if (!updated) {
+                    return res.status(404).json({ error: 'Address not found' });
+                }
 
-            const updated = addressRepo.update(id, {
-                address: address?.trim(),
-                label: label?.trim()
-            });
-
-            if (!updated) {
-                return res.status(404).json({ error: 'Address not found' });
+                res.json(updated);
+            } catch (err) {
+                if (err instanceof AppError && err.statusCode === 409) {
+                    return res.status(409).json({ error: err.message });
+                }
+                next(err);
             }
-
-            res.json(updated);
-        } catch (err) {
-            if (err instanceof AppError && err.statusCode === 409) {
-                return res.status(409).json({ error: err.message });
-            }
-            next(err);
         }
-    });
+    );
 
     /**
      * @openapi
