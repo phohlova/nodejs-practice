@@ -31,6 +31,13 @@ export function initializeDatabase(dbPath: string): Database.Database {
 		label TEXT NOT NULL,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	  );
+
+	  CREATE TABLE IF NOT EXISTS price_history (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		pair TEXT NOT NULL,
+		price REAL NOT NULL,
+		recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+	  );
     `);
 
     logger.info('Database schema verified/created');
