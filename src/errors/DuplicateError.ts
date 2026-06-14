@@ -1,4 +1,4 @@
-const AppError = require('./AppError');
+import { AppError } from './AppError';
 
 export class DuplicateError extends AppError {
     constructor(message: string = 'Resource already exists') {
@@ -6,5 +6,3 @@ export class DuplicateError extends AppError {
         this.name = 'DuplicateError';
     }
 }
-
-module.exports = DuplicateError;

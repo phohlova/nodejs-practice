@@ -8,3 +8,4 @@ export class TaskNotFoundError extends AppError {
 }
 
 module.exports = TaskNotFoundError;
+module.exports.TaskNotFoundError = TaskNotFoundError;

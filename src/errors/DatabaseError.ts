@@ -8,3 +8,4 @@ export class DatabaseError extends AppError {
 }
 
 module.exports = DatabaseError;
+module.exports.DatabaseError = DatabaseError;

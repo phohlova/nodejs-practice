@@ -1,8 +1,8 @@
-const request = require('supertest');
-const { createTestApp } = require('../helpers/testApp');
+import request from 'supertest';
+import { createTestApp } from '../helpers/testApp';
 
 describe('GET /status', () => {
-    let app;
+    let app: any;
 
     beforeEach(() => {
         const testEnv = createTestApp();
@@ -14,5 +14,5 @@ describe('GET /status', () => {
 
         expect(response.status).toBe(200);
         expect(response.text).toBe('ok');
-    }); 
+    });
 });

@@ -8,3 +8,4 @@ export class ConflictError extends AppError {
 }
 
 module.exports = ConflictError;
+module.exports.ConflictError = ConflictError;

@@ -8,3 +8,4 @@ export class ValidationError extends AppError {
 }
 
 module.exports = ValidationError;
+module.exports.ValidationError = ValidationError;

@@ -1,8 +1,8 @@
-const { validateTaskParams } = require('../../src/scheduler/validator');
-const ValidationError = require('../../src/errors/ValidationError');
+import { validateTaskParams } from '../../src/scheduler/validator';
+import { ValidationError } from '../../src/errors/ValidationError';
 
 describe('Scheduler Validator', () => {
-    const validTask = () => {};
+    const validTask = () => { };
 
     test('validate data without errors', () => {
         expect(() => validateTaskParams('backup', 5000, validTask)).not.toThrow();
@@ -18,13 +18,12 @@ describe('Scheduler Validator', () => {
     test('throws ValidationError for incorrect interval', () => {
         expect(() => validateTaskParams('task', 0, validTask)).toThrow('Interval must be a positive number');
         expect(() => validateTaskParams('task', -100, validTask)).toThrow(ValidationError);
-        expect(() => validateTaskParams('task', 'fast', validTask)).toThrow('Interval must be a positive number');
+        expect(() => validateTaskParams('task', 'fast' as any, validTask)).toThrow('Interval must be a positive number');
     });
 
     test('throws ValidationError if task is not function', () => {
-        expect(() => validateTaskParams('task', 1000, 'not a function')).toThrow('Task must be a function');
-        expect(() => validateTaskParams('task', 1000, null)).toThrow(ValidationError);
-        expect(() => validateTaskParams('task', 1000, 123)).toThrow(ValidationError);
+        expect(() => validateTaskParams('task', 1000, 'not a function' as any)).toThrow('Task must be a function');
+        expect(() => validateTaskParams('task', 1000, null as any)).toThrow(ValidationError);
+        expect(() => validateTaskParams('task', 1000, 123 as any)).toThrow(ValidationError);
     });
-
 });

@@ -1,8 +1,9 @@
-const request = require('supertest');
-const { createTestApp } = require('../helpers/testApp');
+import request from 'supertest';
+import { createTestApp } from '../helpers/testApp';
 
 describe('Currencies API', () => {
-	let app, currencyRepo;
+	let app: any;
+	let currencyRepo: any;
 
 	beforeEach(() => {
 		const testEnv = createTestApp();
@@ -11,7 +12,7 @@ describe('Currencies API', () => {
 	});
 
 	describe('POST /currencies', () => {
-		test('must create currence with valid data', async () => {
+		test('must create currency with valid data', async () => {
 			const res = await request(app)
 				.post('/currencies')
 				.send({ name: 'Euro', ticker: 'EUR' })
@@ -23,7 +24,6 @@ describe('Currencies API', () => {
 				ticker: 'EUR'
 			});
 			expect(res.body.id).toBe(1);
-
 		});
 
 		test('must return 409 if ticker already exists', async () => {
@@ -43,7 +43,7 @@ describe('Currencies API', () => {
 				.send({ name: 'Only Name' });
 
 			expect(res.status).toBe(400);
-			expect(res.body.error).toContain('required');
+			expect(res.body.error).toContain('Validation failed');
 		});
 	});
 

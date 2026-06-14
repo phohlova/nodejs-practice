@@ -6,19 +6,16 @@ describe('Logger formatter', () => {
 
         expect(result).toContain('[INFO]');
         expect(result).toContain('Server started');
-
         expect(result).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/);
     });
 
     test('add requestId when it was given', () => {
         const result = formatLogMessage('error', 'DB connection failed', 'req-123');
-
         expect(result).toContain('[req-123]');
     });
 
     test('do not add [] for requestId if it is null', () => {
         const result = formatLogMessage('warn', 'Low memory', null);
-
         expect(result).not.toMatch(/\[null\]|\[undefined\]/);
     });
 

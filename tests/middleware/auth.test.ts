@@ -1,10 +1,10 @@
-const request = require('supertest');
-const { createTestApp } = require('../helpers/testApp');
-const jwt = require('jsonwebtoken');
+import request from 'supertest';
+import jwt from 'jsonwebtoken';
+import { createTestApp } from '../helpers/testApp';
 
 describe('Auth Middleware', () => {
-    let app;
-    const validToken = jwt.sign({ id: 1, role: 'admin' }, process.env.AUTH_SECRET);
+    let app: any;
+    const validToken = jwt.sign({ id: 1, role: 'admin' }, process.env.AUTH_SECRET as string);
     const invalidToken = '111111111';
 
     beforeEach(() => {
@@ -37,12 +37,14 @@ describe('Auth Middleware', () => {
     });
 
     test('must return 403, when token is out of date', async () => {
-        const expiredToken = jwt.sign({ id: 2 }, process.env.AUTH_SECRET, { expiresIn: '0s' });
+        const expiredToken = jwt.sign({ id: 2 }, process.env.AUTH_SECRET as string, { expiresIn: '0s' });
 
-        const res = await request(app) 
+        const res = await request(app)
             .get('/secure/data')
             .set('Authorization', `Bearer ${expiredToken}`);
 
         expect(res.status).toBe(403);
     });
 });
+
+module.exports = {};
