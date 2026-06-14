@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import { withRetry } from '../utils/retry';
 const logger = require('../logger');
 
 interface BlockchainInfo {
@@ -31,35 +32,36 @@ const blockchainClient: AxiosInstance = axios.create({
 });
 
 export const getBlockchainInfo = async (): Promise<BlockchainInfo> => {
-  	try {
-		const response = await blockchainClient.get('/q/getblockcount');
-		const height = parseInt(response.data, 10);
-
-		return {
-			height,
-			hash: '',
-			time: Date.now(),
-			latest_url: '',
-			previous_hash: '',
-			previous_url: '',
-			peer_count: 0,
-			unconfirmed_count: 0,
-			high_fee_per_kb: 0,
-			medium_fee_per_kb: 0,
-			low_fee_per_kb: 0,
-			last_fork_height: 0,
-			last_fork_hash: ''
-    	};
-
-  	} catch (error) {
-		const axiosError = error as AxiosError;
-		logger.error(`Blockchain API error: ${axiosError.message}`, {
-			code: axiosError.code,
-			status: axiosError.response?.status,
-			data: axiosError.response?.data
-		});
-		throw new Error('Failed to fetch blockchain info');
-  	}
+	return withRetry(async () => {
+		try {
+			const response = await blockchainClient.get('/q/getblockcount');
+			const height = parseInt(response.data, 10);
+		
+			return {
+				height,
+				hash: '',
+				time: Date.now(),
+				latest_url: '',
+				previous_hash: '',
+				previous_url: '',
+				peer_count: 0,
+				unconfirmed_count: 0,
+				high_fee_per_kb: 0,
+				medium_fee_per_kb: 0,
+				low_fee_per_kb: 0,
+				last_fork_height: 0,
+				last_fork_hash: ''
+			};
+		} catch (error) {
+			const axiosError = error as AxiosError;
+			logger.error(`Blockchain API error: ${axiosError.message}`, {
+				code: axiosError.code,
+				status: axiosError.response?.status,
+				data: axiosError.response?.data
+			});
+			throw new Error('Failed to fetch blockchain info');
+		}
+	}, 3, 1000);
 };
 
 export const getBlockchainHeight = async (): Promise<number> => {
@@ -72,24 +74,26 @@ export const getBlockchainHeight = async (): Promise<number> => {
 };
 
 export const getAddressBalance = async (address: string): Promise<AddressBalance> => {
-	try {
-		const response = await blockchainClient.get(`/balance?active=${address}`);
-		const data = response.data as Record<string, AddressBalance>;
-		
-		if (!data[address]) {
-			throw new Error(`Address ${address} not found in response`);
+	return withRetry(async () => {
+		try {
+			const response = await blockchainClient.get(`/balance?active=${address}`);
+			const data = response.data as Record<string, AddressBalance>;
+			
+			if (!data[address]) {
+				throw new Error(`Address ${address} not found in response`);
+			}
+			
+			return data[address];
+		} catch (error) {
+			const axiosError = error as AxiosError;
+			logger.error(`Address balance API error: ${axiosError.message}`, {
+				address,
+				code: axiosError.code,
+				status: axiosError.response?.status
+			});
+			throw new Error(`Failed to fetch balance for address: ${address}`);
 		}
-		
-		return data[address];
-	} catch (error) {
-		const axiosError = error as AxiosError;
-		logger.error(`Address balance API error: ${axiosError.message}`, {
-			address,
-			code: axiosError.code,
-			status: axiosError.response?.status
-		});
-		throw new Error(`Failed to fetch balance for address: ${address}`);
-	}
+	}, 3, 1000);
 };
 
 module.exports = { getBlockchainInfo, getBlockchainHeight, getAddressBalance };

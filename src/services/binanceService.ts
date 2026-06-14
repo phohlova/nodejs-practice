@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import { withRetry } from '../utils/retry';
 const logger = require('../logger');
 
 interface BinanceTicker {
@@ -20,18 +21,20 @@ const binanceClient: AxiosInstance = axios.create({
 });
 
 export const getAllTickers = async (): Promise<BinanceTicker[]> => {
-	try {
-		const response = await binanceClient.get('/api/v3/ticker/price');
-		return response.data;
-	} catch (error) {
-		const axiosError = error as AxiosError;
-		logger.error(`Binance API error: ${axiosError.message}`, {
-			code: axiosError.code,
-			status: axiosError.response?.status,
-			data: axiosError.response?.data
-		});
-		throw new Error('Failed to fetch data from Binance');
-	}
+	return withRetry(async () => {
+		try {
+			const response = await binanceClient.get('/api/v3/ticker/price');
+			return response.data;
+		} catch (error) {
+			const axiosError = error as AxiosError;
+			logger.error(`Binance API error: ${axiosError.message}`, {
+				code: axiosError.code,
+				status: axiosError.response?.status,
+				data: axiosError.response?.data
+			});
+			throw new Error('Failed to fetch data from Binance');
+		}
+	}, 3, 1000); 
 };
 
 export const filterByCurrency = (
