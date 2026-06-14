@@ -32,8 +32,25 @@ const blockchainClient: AxiosInstance = axios.create({
 
 export const getBlockchainInfo = async (): Promise<BlockchainInfo> => {
   	try {
-		const response = await blockchainClient.get('/latestblock');
-		return response.data;
+		const response = await blockchainClient.get('/q/getblockcount');
+		const height = parseInt(response.data, 10);
+
+		return {
+			height,
+			hash: '',
+			time: Date.now(),
+			latest_url: '',
+			previous_hash: '',
+			previous_url: '',
+			peer_count: 0,
+			unconfirmed_count: 0,
+			high_fee_per_kb: 0,
+			medium_fee_per_kb: 0,
+			low_fee_per_kb: 0,
+			last_fork_height: 0,
+			last_fork_hash: ''
+    	};
+
   	} catch (error) {
 		const axiosError = error as AxiosError;
 		logger.error(`Blockchain API error: ${axiosError.message}`, {
@@ -60,7 +77,7 @@ export const getAddressBalance = async (address: string): Promise<AddressBalance
 		const data = response.data as Record<string, AddressBalance>;
 		
 		if (!data[address]) {
-		throw new Error(`Address ${address} not found in response`);
+			throw new Error(`Address ${address} not found in response`);
 		}
 		
 		return data[address];

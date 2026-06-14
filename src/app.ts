@@ -7,6 +7,7 @@ import { CurrencyRepository } from './repositories/CurrencyRepository';
 import { ExchangeRateRepository } from './repositories/ExchangeRateRepository';
 import { createCurrencyRoutes } from './routes/currencies';
 import { createPriceRoutes } from './routes/prices';
+import { createBlockchainRoutes } from './routes/blockchain';
 import { AddressRepository } from './repositories/AddressRepository';
 import { createAddressRoutes } from './routes/addresses';
 import { PriceHistoryRepository } from './repositories/PriceHistoryRepository';
@@ -39,6 +40,7 @@ export function createApp(testDb: Database.Database | null = null): AppContext {
     app.use('/price', createPriceRoutes(rateRepo));
     app.use('/addresses', createAddressRoutes(addressRepo));
     app.use('/history', createPriceHistoryRoutes(priceHistoryRepo));
+    app.use('/blockchain', createBlockchainRoutes());
 
     app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
     
