@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "ts-node src/main.ts",
     "start": "node dist/main.ts",
+    "build": "tsc",
     "test": "jest",
     "db:init": "node src/scripts/init-db.ts",
     "db:reset": "del /Q data/app.sqlite 2>nul & && npm run db:init"
