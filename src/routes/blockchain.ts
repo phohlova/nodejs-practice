@@ -25,6 +25,44 @@ export function createBlockchainRoutes(): Router {
      *       502:
      *         description: Ошибка при запросе к блокчейну
      */
+    router.get('/height', async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const height = await getBlockchainHeight();
+            
+            logger.debug(`Blockchain height: ${height}`);
+            
+            res.json({
+                height,
+                timestamp: new Date().toISOString()
+            });
+        } catch (error) {
+            logger.error(`Failed to get blockchain height: ${(error as Error).message}`);
+            res.status(502).json({
+                error: 'Failed to fetch blockchain height',
+                message: (error as Error).message
+            });
+        }
+    });
+
+    /**
+     * @openapi
+     * /blockchain/height:
+     *   get:
+     *     summary: Получить текущую высоту блокчейна Bitcoin
+     *     tags: [Blockchain]
+     *     responses:
+     *       200:
+     *         description: Высота блокчейна
+     *         content:
+     *           application/json:
+     *             schema:
+     *               type: object
+     *               properties:
+     *                 height: { type: integer, example: 850000 }
+     *                 timestamp: { type: string, format: date-time }
+     *       502:
+     *         description: Ошибка при запросе к блокчейну
+     */
     router.get(
         '/address/:address/balance',
         validate([{ field: 'address', required: true, type: 'string', minLength: 10 }]),
